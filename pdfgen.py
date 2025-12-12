@@ -1,113 +1,133 @@
-import os
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
+from reportlab.lib import colors
 from reportlab.pdfgen import canvas
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.platypus import Paragraph, Frame, Spacer
 from datetime import datetime
-from typing import Dict, List, Tuple
-from db import get_random_questions
-import random
+import os
 
-ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
-LOGO_PATH = os.path.join(ASSETS_DIR, "logo.png")
+def _center_text(c, text, y, fontname='Times-Roman', fontsize=16):
+    width = c._pagesize[0]
+    c.setFont(fontname, fontsize)
+    text_width = c.stringWidth(text, fontname, fontsize)
+    c.drawString((width - text_width)/2.0, y, text)
 
-def _shuffle_options(qdict: dict) -> Tuple[dict, str]:
-    opts = [('A', qdict['a']), ('B', qdict['b']), ('C', qdict['c']), ('D', qdict['d'])]
-    random.shuffle(opts)
-    mapping = {chr(65+i): opts[i][1] for i in range(4)}
-    correct_text = qdict['a'] if qdict['correct'] == 'A' else qdict['b'] if qdict['correct']=='B' else qdict['c'] if qdict['correct']=='C' else qdict['d']
-    new_correct = None
-    for label, text in mapping.items():
-        if text == correct_text:
-            new_correct = label
-            break
-    new_q = {'question': qdict['question'], 'a': mapping['A'], 'b': mapping['B'], 'c': mapping['C'], 'd': mapping['D'], 'correct': new_correct}
-    return new_q, new_correct
+def generate_block_pdf(output_path: str, structure, shuffle_options=False, logo_path='assets/logo.png', book_number=None):
+    """
+    Create cover-like PDF similar to sample.
 
-def generate_block_pdf(output_path: str, subjects_map: Dict[str,int], shuffle_options: bool = True):
-    sections = []
-    for subj, cnt in subjects_map.items():
-        qlist = get_random_questions(subj, cnt)
-        if shuffle_options:
-            new_qlist = []
-            for q in qlist:
-                nq, _ = _shuffle_options(q)
-                new_qlist.append(nq)
-            qlist = new_qlist
-        sections.append((subj, qlist))
+    - output_path: full path to save PDF
+    - structure: ordered list of tuples [(subject, count), ...]  e.g.
+                 [("Ona tili",10), ("O'zbekiston tarixi",10), ("Matematika",10), ("Biologiya",30), ("Kimyo",30)]
+                 (first 3 usually mandatory)
+    - shuffle_options: unused here but kept for compatibility
+    - logo_path: path to logo image (optional)
+    - book_number: string (if None we generate timestamp-based)
+    """
+
+    if book_number is None:
+        book_number = datetime.now().strftime("%Y%m%d%H%M")
+
+    # Page setup
+    PAGE_WIDTH, PAGE_HEIGHT = A4
+    margin = 20 * mm
 
     c = canvas.Canvas(output_path, pagesize=A4)
-    width, height = A4
-    margin = 18 * mm
-    usable_width = width - 2*margin
-    y_start = height - margin
 
-    normal_style = ParagraphStyle('normal', fontName='Helvetica', fontSize=11, leading=14)
-    heading_style = ParagraphStyle('heading', fontName='Helvetica-Bold', fontSize=13, leading=16)
+    # --- Logo (top center) ---
+    y = PAGE_HEIGHT - margin - 40*mm
+    if logo_path and os.path.exists(logo_path):
+        # draw image centered, scale to max width
+        max_logo_w = 60*mm
+        max_logo_h = 40*mm
+        try:
+            from PIL import Image
+            img = Image.open(logo_path)
+            iw, ih = img.size
+            scale = min(max_logo_w/iw, max_logo_h/ih, 1.0)
+            iw_scaled = iw * scale
+            ih_scaled = ih * scale
+            c.drawImage(logo_path, (PAGE_WIDTH - iw_scaled)/2.0, y, width=iw_scaled, height=ih_scaled, mask='auto')
+        except Exception:
+            # fallback: draw image without scaling logic
+            c.drawImage(logo_path, (PAGE_WIDTH - max_logo_w)/2.0, y, width=max_logo_w, height=max_logo_h, mask='auto')
+    y -= 50*mm
 
-    def draw_header_footer():
-        if os.path.exists(LOGO_PATH):
-            try:
-                c.drawImage(LOGO_PATH, margin, height - margin - 20*mm, width=30*mm, preserveAspectRatio=True, mask='auto')
-            except Exception:
-                pass
-        c.setFont("Helvetica", 9)
-        c.drawRightString(width - margin, height - margin + 4*mm, f"Sana: {datetime.now().strftime('%Y-%m-%d')}")
-        c.setFont("Helvetica", 8)
-        c.drawString(margin, margin/2, "Blok test — tayyorlangan dastur tomonidan chiqarildi.")
+    # --- Book number box (thin rectangle across) ---
+    box_h = 12*mm
+    box_w = PAGE_WIDTH - 2*margin
+    box_x = margin
+    box_y = PAGE_HEIGHT - margin - (20*mm)
+    c.setLineWidth(1)
+    c.rect(box_x, box_y, box_w, box_h, stroke=1, fill=0)
+    # left small cell blank and centered "KITOB RAQAMI: <num> TIP: 001001"
+    text = f"KITOB RAQAMI: {book_number}    TIP: 001001"
+    c.setFont("Times-Bold", 12)
+    c.drawCentredString(box_x + box_w/2.0, box_y + box_h/2.0 - 4, text)
 
-    def new_page():
-        c.showPage()
-        draw_header_footer()
+    # --- Main title centered ---
+    y_title = box_y - 50*mm
+    c.setFont("Times-Bold", 26)
+    _center_text(c, "TEST TOPSHIRIQ LARI", y_title, fontname="Times-Bold", fontsize=28)
+    _center_text(c, "KITOBI", y_title - 18, fontname="Times-Bold", fontsize=28)
 
-    draw_header_footer()
-    c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width/2, y_start - 10*mm, "BLOK TEST")
-    c.setFont("Helvetica", 11)
-    c.drawCentredString(width/2, y_start - 18*mm, "Abituriyentlar uchun — avtomatik generatsiya")
-    c.setFont("Helvetica", 10)
-    c.drawString(margin, y_start - 28*mm, "Ko'rsatma: Har bir savolga mos A/B/C/D belgilang.")
-    new_page()
+    # --- Blocks list: show ranges and subject (left aligned slightly centered) ---
+    # compute ranges
+    start = 1
+    lines = []
+    for subj, cnt in structure:
+        end = start + cnt - 1
+        range_text = f"{start}-{end} topshiriqlar"
+        lines.append((range_text, subj))
+        start = end + 1
 
-    qnum = 1
-    answer_key = []
+    # place the lines centered horizontally but with two columns: left range, right subject aligned right-of-range
+    list_y_start = y_title - 70
+    line_gap = 14
+    c.setFont("Times-Roman", 12)
+    # place lines in center column block
+    col_x = PAGE_WIDTH/2.0 - 60*mm
+    for i, (rtext, subj) in enumerate(lines):
+        y_line = list_y_start - i * line_gap
+        # left (range)
+        c.drawString(col_x, y_line, rtext)
+        # right (subject) with parentheses and numeric code if you want
+        subj_display = subj
+        c.drawString(col_x + 80*mm, y_line, subj_display)
 
-    for section_title, qlist in sections:
-        story = []
-        story.append(Paragraph(f"<b>{section_title}</b>", heading_style))
-        story.append(Spacer(1, 4*mm))
-        for q in qlist:
-            story.append(Paragraph(f"<b>{qnum})</b> {q['question']}", normal_style))
-            story.append(Paragraph(f"A) {q['a']}", normal_style))
-            story.append(Paragraph(f"B) {q['b']}", normal_style))
-            story.append(Paragraph(f"C) {q['c']}", normal_style))
-            story.append(Paragraph(f"D) {q['d']}", normal_style))
-            story.append(Spacer(1, 3*mm))
-            answer_key.append((qnum, q['correct']))
-            qnum += 1
-        frame = Frame(margin, margin, usable_width, height - 2*margin, showBoundary=0)
-        frame.addFromList(story, c)
-        new_page()
+    # --- Note box (bottom-left) ---
+    note_box_w = 80*mm
+    note_box_h = 50*mm
+    note_x = margin
+    note_y = margin + 40*mm
+    c.rect(note_x, note_y, note_box_w, note_box_h, stroke=1, fill=0)
+    c.setFont("Times-Bold", 10)
+    c.drawString(note_x + 6, note_y + note_box_h - 12, "ABITURIYENT DIQQATIGA!")
+    # list inside
+    c.setFont("Times-Roman", 9)
+    notes = [
+        "1. Ushbu kitob va javoblar varaqasi",
+        "   raqamlarni mosligini tekshiring.",
+        "2. Har bir majburiy fandan 10 tadan,",
+        "   mutaxassislik fanlardan 30 tadan test",
+        "   topshiriqlari mavjudligini tekshiring.",
+        "3. Nuqsonlar aniqlanganda, darhol guruh",
+        "   nazoratchisiga ma'lum qiling.",
+        "4. Kitob muqovasiga o'zingiz haqingizdagi",
+        "   ma'lumotlarni yozing va imzo qo'ying."
+    ]
+    ty = note_y + note_box_h - 26
+    for n in notes:
+        c.drawString(note_x + 6, ty, n)
+        ty -= 10
 
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(margin, y_start - 10*mm, "Javoblar varaqasi")
-    c.setFont("Helvetica", 11)
-    x = margin
-    y = y_start - 20*mm
-    per_row = 6
-    col_w = usable_width / per_row
-    cnt = 0
-    for num, ans in answer_key:
-        row = cnt // per_row
-        col = cnt % per_row
-        tx = margin + col*col_w
-        ty = y - row * 8*mm
-        c.drawString(tx, ty, f"{num}) {ans}")
-        cnt += 1
-        if ty < margin + 20*mm:
-            new_page()
-            y = y_start - 20*mm
-            cnt = 0
+    # --- signature line (right side) ---
+    sig_x = PAGE_WIDTH - margin - 60*mm
+    sig_y = note_y + 8
+    c.setFont("Times-Roman", 11)
+    c.drawString(sig_x, sig_y + 20, "." * 30)
+    c.drawString(sig_x + 10, sig_y - 2, "imzo")
 
+    # finish
+    c.showPage()
     c.save()
+    return output_path
