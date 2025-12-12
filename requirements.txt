@@ -1,0 +1,4 @@
+PyQt5>=5.15
+pandas>=1.5
+reportlab>=3.6
+openpyxl>=3.0

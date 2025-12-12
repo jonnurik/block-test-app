@@ -1,0 +1,5 @@
+subject,question,a,b,c,d,correct,type
+Ona tili,Quyidagi so'z qaysi turga mansub? ,kitob,qalam,tezlik,bolalar,A,mandatory
+O'zbekiston tarixi,O'zbekiston mustaqillik yili qachon? ,1991,1990,2000,1989,A,mandatory
+Matematika,2+2=?,3,4,5,6,B,mandatory
+Biologiya,Organizmning asosiy hujayra birligi nima?,organ,hujayra,modda,tizim,B,main

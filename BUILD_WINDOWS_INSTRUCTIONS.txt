@@ -1,0 +1,47 @@
+BUILD WINDOWS EXE - INSTRUCTIONS
+--------------------------------
+This environment cannot build a Windows .exe file here. Windows .exe must be built on a Windows machine
+(or with wine in a compatible setup). Below are step-by-step instructions to produce the .exe locally.
+
+1) Prepare Windows machine (or Windows VM)
+   - Install Python 3.10+ from python.org and add 'python' to PATH.
+   - Install Git (optional).
+
+2) Download project
+   - Unzip block_test_app.zip into a folder, e.g. C:\projects\block_test_app
+
+3) Create virtual environment and activate
+   Open Command Prompt (cmd) or PowerShell (use cmd syntax in this guide)
+     cd C:\projects\block_test_app
+     python -m venv env
+     env\Scripts\activate
+
+4) Install requirements + PyInstaller
+     pip install -r requirements.txt
+     pip install pyinstaller
+
+5) Build with PyInstaller (cmd)
+     pyinstaller --noconfirm --onefile --windowed --add-data "assets;assets" run.py
+
+   - If using PowerShell, use single quotes around the add-data or use the proper separator:
+     pyinstaller --noconfirm --onefile --windowed --add-data 'assets;assets' run.py
+
+6) Output
+   - After build finishes, the executable will be in dist\run.exe (or dist\block_test_app.exe if you changed name)
+   - Also a build folder and spec file will be created.
+
+7) Common issues & fixes
+   - Missing modules: if you get ImportError for modules bundled, add them via --hidden-import modulename
+   - Assets not included: ensure --add-data path syntax is correct ("assets;assets" on Windows)
+   - Large exe: --onefile packages everything; antivirus warnings sometimes appear — consider code signing
+   - GUI shows console: remove --console or use --windowed to hide console
+   - If using UPX compression, install upx and ensure PATH includes it; else PyInstaller will skip UPX.
+
+8) Testing
+   - Copy the produced run.exe from dist folder to another machine without Python and test.
+   - If it fails due to Visual C++ runtime, install Microsoft Visual C++ Redistributable.
+
+If you prefer, I can:
+  - Review build logs if you run the script and paste the log here and help fix errors.
+  - Produce a signed installer script (NSIS) instructions.
+
