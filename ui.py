@@ -1,54 +1,62 @@
 from PyQt5.QtWidgets import (
-    QWidget, QTabWidget, QVBoxLayout, QLabel,
-    QPushButton, QComboBox, QTextEdit
+    QWidget, QVBoxLayout, QLabel, QPushButton,
+    QComboBox, QFileDialog, QMessageBox
 )
+from importer import import_json
+from generator import generate_test
+from pdfgen import generate_pdf
 
-FANLAR = [
+SUBJECTS = [
     "Biologiya", "Kimyo", "Ona tili",
-    "Matematika", "Fizika", "Rus tili",
-    "Huquqshunoslik", "Ingliz tili",
-    "Geografiya", "Tarix"
+    "Matematika", "Fizika", "Tarix",
+    "Ingliz tili", "Geografiya"
 ]
 
-class MainUI(QWidget):
+class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Blok test generatori")
-        self.resize(520, 420)
+        self.setMinimumWidth(400)
 
-        tabs = QTabWidget(self)
+        layout = QVBoxLayout()
 
-        # 1-QISM: BAZA
-        tab1 = QWidget()
-        l1 = QVBoxLayout(tab1)
-        self.fan_select = QComboBox()
-        self.fan_select.addItems(FANLAR)
-        self.btn_import = QPushButton("JSON bazani import qilish")
-        l1.addWidget(QLabel("Fan tanlang:"))
-        l1.addWidget(self.fan_select)
-        l1.addWidget(self.btn_import)
+        # --- 1-qism ---
+        layout.addWidget(QLabel("📥 Test bazasini shakllantirish"))
+        self.subj = QComboBox()
+        self.subj.addItems(SUBJECTS)
+        layout.addWidget(self.subj)
 
-        # 2-QISM: GENERATSIYA
-        tab2 = QWidget()
-        l2 = QVBoxLayout(tab2)
-        self.asosiy1 = QComboBox()
-        self.asosiy2 = QComboBox()
-        self.asosiy1.addItems(FANLAR)
-        self.asosiy2.addItems(FANLAR)
-        self.stats = QTextEdit()
-        self.stats.setReadOnly(True)
-        self.btn_pdf = QPushButton("PDF yaratish")
+        btn_import = QPushButton("JSON bazani import qilish")
+        btn_import.clicked.connect(self.import_data)
+        layout.addWidget(btn_import)
 
-        l2.addWidget(QLabel("Asosiy fan 1:"))
-        l2.addWidget(self.asosiy1)
-        l2.addWidget(QLabel("Asosiy fan 2:"))
-        l2.addWidget(self.asosiy2)
-        l2.addWidget(QLabel("Bazadagi savollar holati:"))
-        l2.addWidget(self.stats)
-        l2.addWidget(self.btn_pdf)
+        # --- 2-qism ---
+        layout.addWidget(QLabel("📄 Test generatsiyasi"))
 
-        tabs.addTab(tab1, "1. Savollar bazasi")
-        tabs.addTab(tab2, "2. Test generatsiya")
+        self.main1 = QComboBox()
+        self.main2 = QComboBox()
+        self.main1.addItems(SUBJECTS)
+        self.main2.addItems(SUBJECTS)
 
-        main = QVBoxLayout(self)
-        main.addWidget(tabs)
+        layout.addWidget(self.main1)
+        layout.addWidget(self.main2)
+
+        btn_pdf = QPushButton("PDF yaratish")
+        btn_pdf.clicked.connect(self.create_pdf)
+        layout.addWidget(btn_pdf)
+
+        self.setLayout(layout)
+
+    def import_data(self):
+        file, _ = QFileDialog.getOpenFileName(self, "JSON tanlang", "", "JSON (*.json)")
+        if file:
+            import_json(file, self.subj.currentText(), "asosiy", "orta")
+            QMessageBox.information(self, "OK", "Bazaga saqlandi")
+
+    def create_pdf(self):
+        questions = generate_test(
+            self.main1.currentText(),
+            self.main2.currentText()
+        )
+        generate_pdf(questions)
+        QMessageBox.information(self, "Tayyor", "PDF yaratildi")
