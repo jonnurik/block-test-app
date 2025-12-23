@@ -1,62 +1,43 @@
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton,
-    QComboBox, QFileDialog, QMessageBox
-)
-from importer import import_json
-from generator import generate_test
-from pdfgen import generate_pdf
+from PyQt5.QtWidgets import *
 
-SUBJECTS = [
-    "Biologiya", "Kimyo", "Ona tili",
-    "Matematika", "Fizika", "Tarix",
-    "Ingliz tili", "Geografiya"
-]
+FANLAR = ["Ona tili","Matematika","Tarix","Biologiya","Kimyo","Fizika"]
 
-class MainWindow(QWidget):
+class MainUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Blok test generatori")
-        self.setMinimumWidth(400)
+        self.setWindowTitle("Test Generator")
+        self.resize(520,420)
 
-        layout = QVBoxLayout()
+        tabs = QTabWidget(self)
 
-        # --- 1-qism ---
-        layout.addWidget(QLabel("📥 Test bazasini shakllantirish"))
-        self.subj = QComboBox()
-        self.subj.addItems(SUBJECTS)
-        layout.addWidget(self.subj)
+        # TAB 1 – IMPORT
+        t1 = QWidget()
+        l1 = QVBoxLayout(t1)
+        self.fan = QComboBox(); self.fan.addItems(FANLAR)
+        self.type = QComboBox(); self.type.addItems(["majburiy","asosiy"])
+        self.btn_import = QPushButton("JSON Import")
+        self.stats = QTextEdit(); self.stats.setReadOnly(True)
 
-        btn_import = QPushButton("JSON bazani import qilish")
-        btn_import.clicked.connect(self.import_data)
-        layout.addWidget(btn_import)
+        l1.addWidget(self.fan)
+        l1.addWidget(self.type)
+        l1.addWidget(self.btn_import)
+        l1.addWidget(self.stats)
 
-        # --- 2-qism ---
-        layout.addWidget(QLabel("📄 Test generatsiyasi"))
+        # TAB 2 – GENERATOR
+        t2 = QWidget()
+        l2 = QVBoxLayout(t2)
+        self.a1 = QComboBox(); self.a1.addItems(FANLAR)
+        self.a2 = QComboBox(); self.a2.addItems(FANLAR)
+        self.btn_pdf = QPushButton("PDF yaratish")
+        self.btn_edit = QPushButton("Testlarni tahrirlash")
 
-        self.main1 = QComboBox()
-        self.main2 = QComboBox()
-        self.main1.addItems(SUBJECTS)
-        self.main2.addItems(SUBJECTS)
+        l2.addWidget(self.a1)
+        l2.addWidget(self.a2)
+        l2.addWidget(self.btn_pdf)
+        l2.addWidget(self.btn_edit)
 
-        layout.addWidget(self.main1)
-        layout.addWidget(self.main2)
+        tabs.addTab(t1,"1. Baza")
+        tabs.addTab(t2,"2. Generator")
 
-        btn_pdf = QPushButton("PDF yaratish")
-        btn_pdf.clicked.connect(self.create_pdf)
-        layout.addWidget(btn_pdf)
-
-        self.setLayout(layout)
-
-    def import_data(self):
-        file, _ = QFileDialog.getOpenFileName(self, "JSON tanlang", "", "JSON (*.json)")
-        if file:
-            import_json(file, self.subj.currentText(), "asosiy", "orta")
-            QMessageBox.information(self, "OK", "Bazaga saqlandi")
-
-    def create_pdf(self):
-        questions = generate_test(
-            self.main1.currentText(),
-            self.main2.currentText()
-        )
-        generate_pdf(questions)
-        QMessageBox.information(self, "Tayyor", "PDF yaratildi")
+        main = QVBoxLayout(self)
+        main.addWidget(tabs)
