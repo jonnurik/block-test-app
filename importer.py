@@ -1,28 +1,23 @@
+import json
+from db import init_db, insert_many
 
-import pandas as pd
+def import_json(path):
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-REQUIRED_COLUMNS = ["subject", "question", "A", "B", "C", "D"]
+    rows = []
+    for q in data:
+        rows.append((
+            q["subject"],
+            q.get("difficulty", "orta"),
+            q["question"],
+            q["answers"][0],
+            q["answers"][1],
+            q["answers"][2],
+            q["answers"][3],
+        ))
 
-def load_questions(path):
-    if path.endswith(".csv"):
-        df = pd.read_csv(path)
-    else:
-        df = pd.read_excel(path)
+    init_db()
+    insert_many(rows)
 
-    for col in REQUIRED_COLUMNS:
-        if col not in df.columns:
-            raise ValueError(f"Ustun yetishmayapti: {col}")
-
-    questions = {}
-    for _, r in df.iterrows():
-        subject = str(r["subject"]).strip()
-        q = {
-            "q": str(r["question"]),
-            "A": str(r["A"]),
-            "B": str(r["B"]),
-            "C": str(r["C"]),
-            "D": str(r["D"]),
-        }
-        questions.setdefault(subject, []).append(q)
-
-    return questions
+    return len(rows)
