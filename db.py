@@ -28,3 +28,17 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+
+def get_subject_stats():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT subject, COUNT(*) 
+        FROM questions
+        GROUP BY subject
+        ORDER BY subject
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
