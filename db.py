@@ -1,25 +1,32 @@
 import sqlite3
+import os
+import sys
 
-DB_NAME = "tests.db"
+def get_base_path():
+    # PyInstaller (.exe) uchun
+    if hasattr(sys, '_MEIPASS'):
+        return sys._MEIPASS
+    # Oddiy python uchun
+    return os.path.dirname(os.path.abspath(__file__))
+
+DB_PATH = os.path.join(get_base_path(), "tests.db")
 
 def get_conn():
-    return sqlite3.connect(DB_NAME)
+    return sqlite3.connect(DB_PATH)
 
 def init_db():
     conn = get_conn()
     cur = conn.cursor()
-
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS questions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        subject TEXT,
-        block_type TEXT,
-        difficulty TEXT,
-        question TEXT,
-        options TEXT,
-        correct TEXT
-    )
+        CREATE TABLE IF NOT EXISTS questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            subject TEXT,
+            block_type TEXT,
+            difficulty TEXT,
+            question TEXT,
+            options TEXT,
+            correct TEXT
+        )
     """)
-
     conn.commit()
     conn.close()
