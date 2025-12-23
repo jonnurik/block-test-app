@@ -1,9 +1,9 @@
 import sqlite3
 
-DB_NAME = "tests.db"
+DB = "tests.db"
 
 def connect():
-    return sqlite3.connect(DB_NAME)
+    return sqlite3.connect(DB)
 
 def init_db():
     con = connect()
@@ -14,10 +14,7 @@ def init_db():
             subject TEXT,
             level TEXT,
             question TEXT,
-            A TEXT,
-            B TEXT,
-            C TEXT,
-            D TEXT
+            A TEXT, B TEXT, C TEXT, D TEXT
         )
     """)
     con.commit()
@@ -34,6 +31,16 @@ def insert_many(rows):
     con.commit()
     con.close()
 
+def count_by_subject():
+    con = connect()
+    cur = con.cursor()
+    cur.execute("""
+        SELECT subject, COUNT(*) FROM questions GROUP BY subject
+    """)
+    rows = cur.fetchall()
+    con.close()
+    return dict(rows)
+
 def get_questions(subject, level, limit):
     con = connect()
     cur = con.cursor()
@@ -44,9 +51,9 @@ def get_questions(subject, level, limit):
         ORDER BY RANDOM()
         LIMIT ?
     """, (subject, level, limit))
-    rows = cur.fetchall()
+    data = cur.fetchall()
     con.close()
     return [
         {"q": r[0], "A": r[1], "B": r[2], "C": r[3], "D": r[4]}
-        for r in rows
+        for r in data
     ]
