@@ -1,22 +1,36 @@
 import json
-from db import init_db, insert_many
+from db import get_conn
 
-def import_json(path, subject):
-    with open(path, "r", encoding="utf-8") as f:
+def import_json(file_path, subject, block_type, difficulty):
+    conn = get_conn()
+    cur = conn.cursor()
+
+    with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    rows = []
     for q in data:
-        rows.append((
+        question_text = q["question"]
+        answers = q["answers"]
+
+        options = []
+        correct = ""
+
+        for a in answers:
+            options.append(a["answer"])
+            if a["correct"] == "1":
+                correct = a["answer"]
+
+        cur.execute("""
+        INSERT INTO questions(subject, block_type, difficulty, question, options, correct)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """, (
             subject,
-            q.get("difficulty", "orta"),
-            q["question"],
-            q["answers"][0],
-            q["answers"][1],
-            q["answers"][2],
-            q["answers"][3],
+            block_type,
+            difficulty,
+            question_text,
+            json.dumps(options, ensure_ascii=False),
+            correct
         ))
 
-    init_db()
-    insert_many(rows)
-    return len(rows)
+    conn.commit()
+    conn.close()
