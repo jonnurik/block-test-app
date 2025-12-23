@@ -1,21 +1,43 @@
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
+from PyQt5.QtWidgets import *
 
-def generate_pdf(questions, filename="test.pdf"):
-    c = canvas.Canvas(filename, pagesize=A4)
-    y = 800
-    num = 1
+FANLAR = ["Ona tili","Matematika","Tarix","Biologiya","Kimyo","Fizika"]
 
-    for q in questions:
-        c.drawString(40, y, f"{num}. {q['question']}")
-        y -= 20
-        for opt in q["options"]:
-            c.drawString(60, y, f"- {opt}")
-            y -= 15
-        y -= 10
-        if y < 100:
-            c.showPage()
-            y = 800
-        num += 1
+class MainUI(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Test Generator")
+        self.resize(520,420)
 
-    c.save()
+        tabs = QTabWidget(self)
+
+        # TAB 1 – IMPORT
+        t1 = QWidget()
+        l1 = QVBoxLayout(t1)
+        self.fan = QComboBox(); self.fan.addItems(FANLAR)
+        self.type = QComboBox(); self.type.addItems(["majburiy","asosiy"])
+        self.btn_import = QPushButton("JSON Import")
+        self.stats = QTextEdit(); self.stats.setReadOnly(True)
+
+        l1.addWidget(self.fan)
+        l1.addWidget(self.type)
+        l1.addWidget(self.btn_import)
+        l1.addWidget(self.stats)
+
+        # TAB 2 – GENERATOR
+        t2 = QWidget()
+        l2 = QVBoxLayout(t2)
+        self.a1 = QComboBox(); self.a1.addItems(FANLAR)
+        self.a2 = QComboBox(); self.a2.addItems(FANLAR)
+        self.btn_pdf = QPushButton("PDF yaratish")
+        self.btn_edit = QPushButton("Testlarni tahrirlash")
+
+        l2.addWidget(self.a1)
+        l2.addWidget(self.a2)
+        l2.addWidget(self.btn_pdf)
+        l2.addWidget(self.btn_edit)
+
+        tabs.addTab(t1,"1. Baza")
+        tabs.addTab(t2,"2. Generator")
+
+        main = QVBoxLayout(self)
+        main.addWidget(tabs)
