@@ -3,10 +3,8 @@ import os
 import sys
 
 def get_base_path():
-    # PyInstaller (.exe) uchun
     if hasattr(sys, '_MEIPASS'):
         return sys._MEIPASS
-    # Oddiy python uchun
     return os.path.dirname(os.path.abspath(__file__))
 
 DB_PATH = os.path.join(get_base_path(), "tests.db")
