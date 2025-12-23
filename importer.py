@@ -1,48 +1,28 @@
 import json
-from db import get_conn
+from db import insert
 
-def import_json(path, subject, block_type="asosiy", difficulty="orta"):
-    conn = get_conn()
-    cur = conn.cursor()
-
-    with open(path, "r", encoding="utf-8") as f:
+def import_json(path, subject, block_type):
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
-    added = 0
-
+    count = 0
     for q in data:
-        question_text = q["question"]
-
-        answers = q.get("answers", [])
-        if len(answers) < 4:
-            continue  # noto‘g‘ri savollarni tashlab ketamiz
-
-        options = []
+        answers = q["answers"]
         correct = ""
-
         for a in answers:
-            options.append(a["answer"])
             if a.get("correct") == "1":
                 correct = a["answer"]
 
-        if not correct:
-            continue
-
-        cur.execute("""
-            INSERT INTO questions
-            (subject, block_type, difficulty, question, options, correct)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
+        insert((
             subject,
             block_type,
-            difficulty,
-            question_text,
-            json.dumps(options, ensure_ascii=False),
+            q.get("difficulty","orta"),
+            q["question"],
+            answers[0]["answer"],
+            answers[1]["answer"],
+            answers[2]["answer"],
+            answers[3]["answer"],
             correct
         ))
-
-        added += 1
-
-    conn.commit()
-    conn.close()
-    return added
+        count += 1
+    return count
