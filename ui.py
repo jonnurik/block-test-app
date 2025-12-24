@@ -10,7 +10,7 @@ class MainUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Blok test generatori")
-        self.resize(600, 500)
+        self.resize(650, 520)
 
         tabs = QTabWidget(self)
 
@@ -34,8 +34,8 @@ class MainUI(QWidget):
         self.table.setHorizontalHeaderLabels(
             ["ID", "Savol", "A", "B", "C", "D", "To‘g‘ri"]
         )
-        self.table.setSelectionBehavior(self.table.SelectRows)
-        self.table.setEditTriggers(self.table.NoEditTriggers)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
 
         self.btn_edit = QPushButton("✏️ Tahrirlash")
         self.btn_delete = QPushButton("🗑 O‘chirish")
@@ -47,7 +47,7 @@ class MainUI(QWidget):
         l1.addWidget(self.btn_import)
         l1.addWidget(QLabel("Statistika:"))
         l1.addWidget(self.stats)
-        l1.addWidget(QLabel("Savollar:"))
+        l1.addWidget(QLabel("Kiritilgan savollar:"))
         l1.addWidget(self.table)
 
         btns = QHBoxLayout()
