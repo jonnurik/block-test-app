@@ -1,2 +1,2 @@
-PyQt5
-reportlab
+PyQt5>=5.15
+reportlab>=3.6
