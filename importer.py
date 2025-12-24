@@ -30,7 +30,6 @@ def import_json(path, subject, block_type):
             answers[3]["answer"],
             correct
         ))
-
         count += 1
 
     return count
