@@ -1,9 +1,9 @@
-from db import select
+from db import select_questions
 
-def block(subject, block_type, total):
-    p = total // 3
+def generate_block(subject, block_type, total):
+    part = total // 3
     return (
-        select(subject, block_type, "oson", p) +
-        select(subject, block_type, "orta", p) +
-        select(subject, block_type, "qiyin", p)
+        select_questions(subject, block_type, "oson", part) +
+        select_questions(subject, block_type, "orta", part) +
+        select_questions(subject, block_type, "qiyin", part)
     )
