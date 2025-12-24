@@ -1,5 +1,5 @@
 import json
-from db import insert
+from db import insert_question
 
 def import_json(path, subject, block_type):
     with open(path, encoding="utf-8") as f:
@@ -7,16 +7,22 @@ def import_json(path, subject, block_type):
 
     count = 0
     for q in data:
-        answers = q["answers"]
+        answers = q.get("answers", [])
+        if len(answers) < 4:
+            continue
+
         correct = ""
         for a in answers:
             if a.get("correct") == "1":
                 correct = a["answer"]
 
-        insert((
+        if not correct:
+            continue
+
+        insert_question((
             subject,
             block_type,
-            q.get("difficulty","orta"),
+            q.get("difficulty", "orta"),
             q["question"],
             answers[0]["answer"],
             answers[1]["answer"],
@@ -24,5 +30,7 @@ def import_json(path, subject, block_type):
             answers[3]["answer"],
             correct
         ))
+
         count += 1
+
     return count
