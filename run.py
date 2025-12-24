@@ -1,44 +1,78 @@
 import sys
-from PyQt5.QtWidgets import QApplication,QFileDialog,QMessageBox
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox
+
 from ui import MainUI
-from db import init_db, stats
+from db import init_db, get_stats
 from importer import import_json
-from generator import block
+from generator import generate_block
 from pdfgen import generate_pdf
-from editor import Editor
 
 init_db()
+
 app = QApplication(sys.argv)
 ui = MainUI()
 
-def refresh():
-    t=""
-    for s,b,c in stats():
-        t+=f"{s} [{b}] : {c}\n"
-    ui.stats.setText(t)
+def refresh_stats():
+    rows = get_stats()
+    text = ""
+    for subject, block_type, count in rows:
+        text += f"{subject} [{block_type}]: {count} ta savol\n"
+    if not text:
+        text = "Bazaga hali savollar qo‘shilmagan."
+    ui.stats.setText(text)
 
-def imp():
-    f,_=QFileDialog.getOpenFileName(ui,"JSON","","*.json")
-    if f:
-        n=import_json(f,ui.fan.currentText(),ui.type.currentText())
-        QMessageBox.information(ui,"OK",f"{n} ta qo‘shildi")
-        refresh()
+def handle_import():
+    file_path, _ = QFileDialog.getOpenFileName(
+        ui, "JSON fayl tanlang", "", "JSON (*.json)"
+    )
+    if not file_path:
+        return
 
-def gen():
-    blocks=[
-        ("Ona tili",block("Ona tili","majburiy",10)),
-        ("Matematika",block("Matematika","majburiy",10)),
-        ("Tarix",block("Tarix","majburiy",10)),
-        (ui.a1.currentText(),block(ui.a1.currentText(),"asosiy",30)),
-        (ui.a2.currentText(),block(ui.a2.currentText(),"asosiy",30)),
+    subject = ui.fan_select.currentText()
+    block_type = ui.block_type.currentText()
+
+    added = import_json(file_path, subject, block_type)
+
+    QMessageBox.information(
+        ui, "Import yakunlandi",
+        f"{subject} ({block_type}) faniga {added} ta savol qo‘shildi"
+    )
+    refresh_stats()
+
+def handle_generate():
+    a1 = ui.asosiy1.currentText()
+    a2 = ui.asosiy2.currentText()
+
+    if a1 == a2:
+        QMessageBox.warning(ui, "Xato", "Asosiy fanlar bir xil bo‘lmasin")
+        return
+
+    blocks = [
+        ("Ona tili (majburiy)", generate_block("Ona tili", "majburiy", 10)),
+        ("Matematika (majburiy)", generate_block("Matematika", "majburiy", 10)),
+        ("Tarix (majburiy)", generate_block("Tarix", "majburiy", 10)),
+        (a1, generate_block(a1, "asosiy", 30)),
+        (a2, generate_block(a2, "asosiy", 30)),
     ]
-    p,_=QFileDialog.getSaveFileName(ui,"PDF","","*.pdf")
-    if p: generate_pdf(p,blocks)
 
-ui.btn_import.clicked.connect(imp)
-ui.btn_pdf.clicked.connect(gen)
-ui.btn_edit.clicked.connect(lambda: Editor().show())
+    for title, qs in blocks:
+        if len(qs) == 0:
+            QMessageBox.warning(ui, "Xato", f"{title} fanidan savol yetarli emas")
+            return
 
-refresh()
+    save_path, _ = QFileDialog.getSaveFileName(
+        ui, "PDF saqlash", "blok_test.pdf", "PDF (*.pdf)"
+    )
+    if not save_path:
+        return
+
+    generate_pdf(save_path, blocks)
+
+    QMessageBox.information(ui, "Tayyor", "PDF muvaffaqiyatli yaratildi")
+
+ui.btn_import.clicked.connect(handle_import)
+ui.btn_pdf.clicked.connect(handle_generate)
+
+refresh_stats()
 ui.show()
 sys.exit(app.exec_())
