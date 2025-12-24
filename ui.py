@@ -10,11 +10,11 @@ class MainUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Blok test generatori")
-        self.resize(520, 420)
+        self.resize(600, 500)
 
         tabs = QTabWidget(self)
 
-        # ===== TAB 1: IMPORT =====
+        # ===== TAB 1 =====
         t1 = QWidget()
         l1 = QVBoxLayout(t1)
 
@@ -24,19 +24,38 @@ class MainUI(QWidget):
         self.block_type = QComboBox()
         self.block_type.addItems(["majburiy", "asosiy"])
 
-        self.btn_import = QPushButton("JSON Import qilish")
+        self.btn_import = QPushButton("JSON Import")
+
         self.stats = QTextEdit()
         self.stats.setReadOnly(True)
 
-        l1.addWidget(QLabel("Fan tanlang:"))
+        self.table = QTableWidget()
+        self.table.setColumnCount(7)
+        self.table.setHorizontalHeaderLabels(
+            ["ID", "Savol", "A", "B", "C", "D", "To‘g‘ri"]
+        )
+        self.table.setSelectionBehavior(self.table.SelectRows)
+        self.table.setEditTriggers(self.table.NoEditTriggers)
+
+        self.btn_edit = QPushButton("✏️ Tahrirlash")
+        self.btn_delete = QPushButton("🗑 O‘chirish")
+
+        l1.addWidget(QLabel("Fan:"))
         l1.addWidget(self.fan_select)
         l1.addWidget(QLabel("Blok turi:"))
         l1.addWidget(self.block_type)
         l1.addWidget(self.btn_import)
-        l1.addWidget(QLabel("Bazadagi savollar holati:"))
+        l1.addWidget(QLabel("Statistika:"))
         l1.addWidget(self.stats)
+        l1.addWidget(QLabel("Savollar:"))
+        l1.addWidget(self.table)
 
-        # ===== TAB 2: GENERATOR =====
+        btns = QHBoxLayout()
+        btns.addWidget(self.btn_edit)
+        btns.addWidget(self.btn_delete)
+        l1.addLayout(btns)
+
+        # ===== TAB 2 =====
         t2 = QWidget()
         l2 = QVBoxLayout(t2)
 
@@ -47,9 +66,9 @@ class MainUI(QWidget):
 
         self.btn_pdf = QPushButton("PDF yaratish")
 
-        l2.addWidget(QLabel("Asosiy fan 1:"))
+        l2.addWidget(QLabel("Asosiy fan 1"))
         l2.addWidget(self.asosiy1)
-        l2.addWidget(QLabel("Asosiy fan 2:"))
+        l2.addWidget(QLabel("Asosiy fan 2"))
         l2.addWidget(self.asosiy2)
         l2.addWidget(self.btn_pdf)
 
