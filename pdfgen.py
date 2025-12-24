@@ -5,7 +5,7 @@ def generate_pdf(path, blocks):
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     y = h - 40
-    qnum = 1
+    num = 1
 
     for title, qs in blocks:
         c.setFont("Times-Bold", 14)
@@ -18,13 +18,13 @@ def generate_pdf(path, blocks):
                 c.showPage()
                 y = h - 40
 
-            c.drawString(40, y, f"{qnum}. {q['q']}")
+            c.drawString(40, y, f"{num}. {q['q']}")
             y -= 18
             for o in ["A", "B", "C", "D"]:
                 c.drawString(60, y, f"{o}) {q[o]}")
                 y -= 15
             y -= 10
-            qnum += 1
+            num += 1
 
         c.showPage()
         y = h - 40
