@@ -1,13 +1,13 @@
 import sqlite3
 import os
-import sys
 
-def base_dir():
-    if hasattr(sys, "_MEIPASS"):
-        return sys._MEIPASS
-    return os.path.dirname(os.path.abspath(__file__))
+def get_db_path():
+    home = os.path.expanduser("~")
+    data_dir = os.path.join(home, "Documents", "BlockTestGenerator")
+    os.makedirs(data_dir, exist_ok=True)
+    return os.path.join(data_dir, "tests.db")
 
-DB_PATH = os.path.join(base_dir(), "tests.db")
+DB_PATH = get_db_path()
 
 def get_conn():
     return sqlite3.connect(DB_PATH)
