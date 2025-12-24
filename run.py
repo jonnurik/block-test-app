@@ -1,5 +1,11 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QInputDialog
+from PyQt5.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QMessageBox,
+    QInputDialog,
+    QTableWidgetItem
+)
 
 from ui import MainUI
 from db import (
