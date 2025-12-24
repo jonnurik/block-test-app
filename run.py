@@ -1,10 +1,7 @@
 import sys
 from PyQt5.QtWidgets import (
-    QApplication,
-    QFileDialog,
-    QMessageBox,
-    QInputDialog,
-    QTableWidgetItem
+    QApplication, QFileDialog, QMessageBox,
+    QInputDialog, QTableWidgetItem
 )
 
 from ui import MainUI
@@ -21,14 +18,6 @@ init_db()
 app = QApplication(sys.argv)
 ui = MainUI()
 
-def refresh_stats():
-    rows = get_stats()
-    text = ""
-    for s, b, c in rows:
-        text += f"{s} [{b}]: {c} ta\n"
-    ui.stats.setText(text or "Bazaga savol kiritilmagan")
-    load_questions()
-
 def load_questions():
     subject = ui.fan_select.currentText()
     rows = get_questions_by_subject(subject)
@@ -37,12 +26,19 @@ def load_questions():
         for c, val in enumerate(row):
             ui.table.setItem(r, c, QTableWidgetItem(str(val)))
 
+def refresh_stats():
+    rows = get_stats()
+    text = ""
+    for s, b, c in rows:
+        text += f"{s} [{b}]: {c} ta\n"
+    ui.stats.setText(text or "Bazaga savol kiritilmagan")
+    load_questions()
+
 def handle_import():
     path, _ = QFileDialog.getOpenFileName(ui, "JSON tanlang", "", "JSON (*.json)")
     if not path:
         return
-    added = import_json(path, ui.fan_select.currentText(), ui.block_type.currentText())
-    QMessageBox.information(ui, "Import", f"{added} ta savol qo‘shildi")
+    import_json(path, ui.fan_select.currentText(), ui.block_type.currentText())
     refresh_stats()
 
 def handle_delete():
@@ -56,10 +52,13 @@ def handle_edit():
     if row < 0:
         return
     qid = int(ui.table.item(row, 0).text())
-    text, ok = QInputDialog.getText(ui, "Tahrirlash", "Savol:", text=ui.table.item(row,1).text())
+    text, ok = QInputDialog.getText(
+        ui, "Tahrirlash", "Savol:", text=ui.table.item(row,1).text()
+    )
     if ok:
         update_question(
-            qid, text,
+            qid,
+            text,
             ui.table.item(row,2).text(),
             ui.table.item(row,3).text(),
             ui.table.item(row,4).text(),
@@ -82,10 +81,11 @@ def handle_generate():
         (a2, generate_block(a2, "asosiy", 30)),
     ]
 
-    path, _ = QFileDialog.getSaveFileName(ui, "PDF saqlash", "blok_test.pdf", "PDF (*.pdf)")
+    path, _ = QFileDialog.getSaveFileName(
+        ui, "PDF saqlash", "blok_test.pdf", "PDF (*.pdf)"
+    )
     if path:
         generate_pdf(path, blocks)
-        QMessageBox.information(ui, "Tayyor", "PDF yaratildi")
 
 ui.btn_import.clicked.connect(handle_import)
 ui.btn_delete.clicked.connect(handle_delete)
