@@ -1,43 +1,36 @@
-from PyQt5.QtWidgets import *
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
-FANLAR = ["Ona tili","Matematika","Tarix","Biologiya","Kimyo","Fizika"]
+def generate_pdf(path, blocks):
+    c = canvas.Canvas(path, pagesize=A4)
+    width, height = A4
 
-class MainUI(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Test Generator")
-        self.resize(520,420)
+    y = height - 40
+    qnum = 1
 
-        tabs = QTabWidget(self)
+    for title, questions in blocks:
+        c.setFont("Times-Bold", 14)
+        c.drawString(40, y, title)
+        y -= 25
 
-        # TAB 1 – IMPORT
-        t1 = QWidget()
-        l1 = QVBoxLayout(t1)
-        self.fan = QComboBox(); self.fan.addItems(FANLAR)
-        self.type = QComboBox(); self.type.addItems(["majburiy","asosiy"])
-        self.btn_import = QPushButton("JSON Import")
-        self.stats = QTextEdit(); self.stats.setReadOnly(True)
+        c.setFont("Times-Roman", 11)
 
-        l1.addWidget(self.fan)
-        l1.addWidget(self.type)
-        l1.addWidget(self.btn_import)
-        l1.addWidget(self.stats)
+        for q in questions:
+            if y < 80:
+                c.showPage()
+                y = height - 40
 
-        # TAB 2 – GENERATOR
-        t2 = QWidget()
-        l2 = QVBoxLayout(t2)
-        self.a1 = QComboBox(); self.a1.addItems(FANLAR)
-        self.a2 = QComboBox(); self.a2.addItems(FANLAR)
-        self.btn_pdf = QPushButton("PDF yaratish")
-        self.btn_edit = QPushButton("Testlarni tahrirlash")
+            c.drawString(40, y, f"{qnum}. {q['q']}")
+            y -= 18
 
-        l2.addWidget(self.a1)
-        l2.addWidget(self.a2)
-        l2.addWidget(self.btn_pdf)
-        l2.addWidget(self.btn_edit)
+            for opt in ["A", "B", "C", "D"]:
+                c.drawString(60, y, f"{opt}) {q[opt]}")
+                y -= 15
 
-        tabs.addTab(t1,"1. Baza")
-        tabs.addTab(t2,"2. Generator")
+            y -= 10
+            qnum += 1
 
-        main = QVBoxLayout(self)
-        main.addWidget(tabs)
+        c.showPage()
+        y = height - 40
+
+    c.save()
