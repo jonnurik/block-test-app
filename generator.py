@@ -1,17 +1,11 @@
-from db import select_questions
+import random
+from db import get_questions
 
 
-def generate_block(subject, block_type, count):
-    """
-    Test bloki yaratish
-    """
+def generate_block(subject, block_type, limit):
+    rows = get_questions(subject, block_type)
+    if len(rows) < limit:
+        return []
 
-    questions = select_questions(subject, block_type, count)
-
-    if len(questions) < count:
-        raise Exception(
-            f"{subject} ({block_type}) fanidan yetarli savol yo‘q "
-            f"({len(questions)}/{count})"
-        )
-
-    return questions
+    random.shuffle(rows)
+    return rows[:limit]
