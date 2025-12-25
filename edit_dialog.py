@@ -8,9 +8,7 @@ class EditDialog(QDialog):
     def __init__(self, data, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Savolni tahrirlash")
-        self.resize(500, 430)
-
-        self.data = data
+        self.resize(520, 460)
 
         layout = QVBoxLayout(self)
 
@@ -23,9 +21,9 @@ class EditDialog(QDialog):
         self.C = QLineEdit(data["C"])
         self.D = QLineEdit(data["D"])
 
-        for name, field in [("A", self.A), ("B", self.B), ("C", self.C), ("D", self.D)]:
-            layout.addWidget(QLabel(name + ":"))
-            layout.addWidget(field)
+        for lbl, w in [("A", self.A), ("B", self.B), ("C", self.C), ("D", self.D)]:
+            layout.addWidget(QLabel(lbl + " varianti:"))
+            layout.addWidget(w)
 
         layout.addWidget(QLabel("To‘g‘ri javob:"))
         self.correct = QComboBox()
@@ -36,19 +34,18 @@ class EditDialog(QDialog):
         layout.addWidget(QLabel("Qiyinlik darajasi:"))
         self.diff = QComboBox()
         self.diff.addItems(["oson", "orta", "qiyin"])
-        self.diff.setCurrentText(data.get("difficulty", "orta"))
+        self.diff.setCurrentText(data["difficulty"])
         layout.addWidget(self.diff)
 
         btns = QHBoxLayout()
-        self.btn_ok = QPushButton("Saqlash")
-        self.btn_cancel = QPushButton("Bekor qilish")
-        btns.addWidget(self.btn_ok)
-        btns.addWidget(self.btn_cancel)
-
+        self.ok = QPushButton("Saqlash")
+        self.cancel = QPushButton("Bekor qilish")
+        btns.addWidget(self.ok)
+        btns.addWidget(self.cancel)
         layout.addLayout(btns)
 
-        self.btn_ok.clicked.connect(self.accept)
-        self.btn_cancel.clicked.connect(self.reject)
+        self.ok.clicked.connect(self.accept)
+        self.cancel.clicked.connect(self.reject)
 
     def result_data(self):
         return {
