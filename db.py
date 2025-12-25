@@ -1,13 +1,11 @@
 import sqlite3
 import os
 
-# ==== DOIMIY BAZA JOYI ====
 BASE_DIR = os.path.join(
     os.path.expanduser("~"),
     "Documents",
     "BlockTestGenerator"
 )
-
 os.makedirs(BASE_DIR, exist_ok=True)
 
 DB_PATH = os.path.join(BASE_DIR, "tests.db")
@@ -98,19 +96,12 @@ def delete_question(qid):
     conn.close()
 
 
-def select_questions(subject, block_type, difficulty, limit):
+def clear_questions(subject, block_type):
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("""
-    SELECT question, A, B, C, D
-    FROM questions
-    WHERE subject=? AND block_type=? AND difficulty=?
-    ORDER BY RANDOM()
-    LIMIT ?
-    """, (subject, block_type, difficulty, limit))
-    rows = cur.fetchall()
+    cur.execute(
+        "DELETE FROM questions WHERE subject=? AND block_type=?",
+        (subject, block_type)
+    )
+    conn.commit()
     conn.close()
-    return [
-        {"q": r[0], "A": r[1], "B": r[2], "C": r[3], "D": r[4]}
-        for r in rows
-    ]
