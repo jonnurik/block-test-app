@@ -65,39 +65,39 @@ def refresh_stats():
 
 
 # =====================
-# JSON IMPORT
+# ✅ JSON IMPORT (MUAMMO SHU YERDA EDI)
 # =====================
-def handle_edit():
-    row = ui.table.currentRow()
-    if row < 0:
+def handle_import():
+    file_path, _ = QFileDialog.getOpenFileName(
+        ui,
+        "JSON test bazani tanlang",
+        "",
+        "JSON fayllar (*.json)"
+    )
+
+    if not file_path:
         return
 
-    qid = int(ui.table.item(row, 0).text())
+    subject = ui.fan_select.currentText()
+    block_type = ui.block_type.currentText()
 
-    data = {
-        "q": ui.table.item(row, 1).text(),
-        "A": ui.table.item(row, 2).text(),
-        "B": ui.table.item(row, 3).text(),
-        "C": ui.table.item(row, 4).text(),
-        "D": ui.table.item(row, 5).text(),
-        "correct": ui.table.item(row, 6).text(),
-        "difficulty": ui.table.item(row, 7).text()
-    }
+    try:
+        added = import_json(file_path, subject, block_type)
 
-    dlg = EditDialog(data, ui)
-    if dlg.exec_():
-        r = dlg.result_data()
-        update_question(
-            qid,
-            r["q"],
-            r["A"],
-            r["B"],
-            r["C"],
-            r["D"],
-            r["correct"],
-            r["difficulty"]
+        QMessageBox.information(
+            ui,
+            "Import muvaffaqiyatli",
+            f"{subject} ({block_type}) faniga {added} ta savol qo‘shildi."
         )
+
         refresh_stats()
+
+    except Exception as e:
+        QMessageBox.critical(
+            ui,
+            "Xatolik",
+            f"Import paytida xato:\n{e}"
+        )
 
 
 # =====================
@@ -157,7 +157,11 @@ def handle_generate():
     a2 = ui.asosiy2.currentText()
 
     if a1 == a2:
-        QMessageBox.warning(ui, "Xato", "Asosiy fanlar bir xil bo‘lishi mumkin emas.")
+        QMessageBox.warning(
+            ui,
+            "Xatolik",
+            "Asosiy fanlar bir xil bo‘lishi mumkin emas."
+        )
         return
 
     blocks = [
@@ -177,7 +181,11 @@ def handle_generate():
 
     if save_path:
         generate_pdf(save_path, blocks)
-        QMessageBox.information(ui, "Tayyor", "PDF muvaffaqiyatli yaratildi.")
+        QMessageBox.information(
+            ui,
+            "Tayyor",
+            "PDF muvaffaqiyatli yaratildi."
+        )
 
 
 # =====================
