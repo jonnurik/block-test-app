@@ -1,6 +1,9 @@
 import sqlite3
 import os
 
+# =====================
+# DOIMIY BAZA JOYI
+# =====================
 BASE_DIR = os.path.join(
     os.path.expanduser("~"),
     "Documents",
@@ -105,3 +108,37 @@ def clear_questions(subject, block_type):
     )
     conn.commit()
     conn.close()
+
+
+# =====================
+# 🔴 MUHIM FUNKSIYA (XATONI YO‘Q QILADI)
+# =====================
+def select_questions(subject, block_type, limit):
+    """
+    Berilgan fan va blok turidan tasodifiy savollarni oladi
+    """
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT question, A, B, C, D
+        FROM questions
+        WHERE subject=? AND block_type=?
+        ORDER BY RANDOM()
+        LIMIT ?
+    """, (subject, block_type, limit))
+
+    rows = cur.fetchall()
+    conn.close()
+
+    result = []
+    for r in rows:
+        result.append({
+            "q": r[0],
+            "A": r[1],
+            "B": r[2],
+            "C": r[3],
+            "D": r[4]
+        })
+
+    return result
