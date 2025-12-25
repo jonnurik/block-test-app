@@ -10,7 +10,7 @@ class MainUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Blok test generatori")
-        self.resize(650, 520)
+        self.resize(700, 520)
 
         tabs = QTabWidget(self)
 
@@ -30,12 +30,13 @@ class MainUI(QWidget):
         self.stats.setReadOnly(True)
 
         self.table = QTableWidget()
-        self.table.setColumnCount(7)
-        self.table.setHorizontalHeaderLabels(
-            ["ID", "Savol", "A", "B", "C", "D", "To‘g‘ri"]
-        )
+        self.table.setColumnCount(8)
+        self.table.setHorizontalHeaderLabels([
+            "ID", "Savol", "A", "B", "C", "D", "To‘g‘ri", "Qiyinlik"
+        ])
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.horizontalHeader().setStretchLastSection(True)
 
         self.btn_edit = QPushButton("✏️ Tahrirlash")
         self.btn_delete = QPushButton("🗑 O‘chirish")
