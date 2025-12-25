@@ -67,22 +67,37 @@ def refresh_stats():
 # =====================
 # JSON IMPORT
 # =====================
-def handle_import():
-    path, _ = QFileDialog.getOpenFileName(
-        ui,
-        "JSON test bazani tanlang",
-        "",
-        "JSON fayllar (*.json)"
-    )
-
-    if not path:
+def handle_edit():
+    row = ui.table.currentRow()
+    if row < 0:
         return
 
-    subject = ui.fan_select.currentText()
-    block_type = ui.block_type.currentText()
+    qid = int(ui.table.item(row, 0).text())
 
-    import_json(path, subject, block_type)
-    refresh_stats()
+    data = {
+        "q": ui.table.item(row, 1).text(),
+        "A": ui.table.item(row, 2).text(),
+        "B": ui.table.item(row, 3).text(),
+        "C": ui.table.item(row, 4).text(),
+        "D": ui.table.item(row, 5).text(),
+        "correct": ui.table.item(row, 6).text(),
+        "difficulty": ui.table.item(row, 7).text()
+    }
+
+    dlg = EditDialog(data, ui)
+    if dlg.exec_():
+        r = dlg.result_data()
+        update_question(
+            qid,
+            r["q"],
+            r["A"],
+            r["B"],
+            r["C"],
+            r["D"],
+            r["correct"],
+            r["difficulty"]
+        )
+        refresh_stats()
 
 
 # =====================
