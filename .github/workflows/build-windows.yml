@@ -34,9 +34,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller --noconfirm --onefile --windowed ^
-            --add-data "assets;assets" ^
-            run.py
+          pyinstaller --noconfirm --onefile --windowed --add-data "assets;assets" run.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
