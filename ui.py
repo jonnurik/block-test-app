@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QComboBox,
-    QTextEdit, QTableWidget, QTableWidgetItem, QLabel
+    QTextEdit, QTableWidget, QLabel
 )
 
 
@@ -12,20 +12,25 @@ class MainUI(QWidget):
 
         layout = QVBoxLayout(self)
 
-        self.fan = QComboBox()
-        self.fan.addItems([
+        self.all_subjects = [
             "Ona tili", "Matematika", "Tarix",
             "Biologiya", "Kimyo", "Fizika",
             "Ingliz tili", "Geografiya"
-        ])
+        ]
+
+        self.mandatory_subjects = [
+            "Ona tili", "Matematika", "Tarix"
+        ]
+
+        self.fan = QComboBox()
+        self.fan.addItems(self.all_subjects)
 
         self.block = QComboBox()
         self.block.addItems(["majburiy", "asosiy"])
+        self.block.currentTextChanged.connect(self.update_subjects)
 
         self.import_btn = QPushButton("JSON import")
         self.clear_btn = QPushButton("Blokni tozalash")
-        self.edit_btn = QPushButton("Tahrirlash")
-        self.delete_btn = QPushButton("Bitta savolni o‘chirish")
 
         self.stats = QTextEdit()
         self.stats.setReadOnly(True)
@@ -35,6 +40,8 @@ class MainUI(QWidget):
             ["ID", "Savol", "A", "B", "C", "D", "To‘g‘ri", "Qiyinlik"]
         )
 
+        self.edit_btn = QPushButton("Tahrirlash")
+        self.delete_btn = QPushButton("Bitta savolni o‘chirish")
         self.gen_btn = QPushButton("PDF yaratish")
 
         for w in (
@@ -46,3 +53,10 @@ class MainUI(QWidget):
             self.gen_btn
         ):
             layout.addWidget(w)
+
+    def update_subjects(self, block):
+        self.fan.clear()
+        if block == "majburiy":
+            self.fan.addItems(self.mandatory_subjects)
+        else:
+            self.fan.addItems(self.all_subjects)
