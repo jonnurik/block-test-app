@@ -12,6 +12,7 @@ class MainUI(QWidget):
 
         layout = QVBoxLayout(self)
 
+        # ===== FANLAR =====
         self.all_subjects = [
             "Ona tili", "Matematika", "Tarix",
             "Biologiya", "Kimyo", "Fizika",
@@ -23,18 +24,22 @@ class MainUI(QWidget):
         ]
 
         self.fan = QComboBox()
-        self.fan.addItems(self.all_subjects)
+        self.fan.addItems(self.mandatory_subjects)
 
+        # ===== BLOK =====
         self.block = QComboBox()
         self.block.addItems(["majburiy", "asosiy"])
         self.block.currentTextChanged.connect(self.update_subjects)
 
-        self.import_btn = QPushButton("JSON import")
+        # ===== TUGMALAR =====
+        self.import_btn = QPushButton("Excel (.xlsx) import")
         self.clear_btn = QPushButton("Blokni tozalash")
 
+        # ===== STATISTIKA =====
         self.stats = QTextEdit()
         self.stats.setReadOnly(True)
 
+        # ===== JADVAL =====
         self.table = QTableWidget(0, 8)
         self.table.setHorizontalHeaderLabels(
             ["ID", "Savol", "A", "B", "C", "D", "To‘g‘ri", "Qiyinlik"]
@@ -44,16 +49,19 @@ class MainUI(QWidget):
         self.delete_btn = QPushButton("Bitta savolni o‘chirish")
         self.gen_btn = QPushButton("PDF yaratish")
 
+        # ===== JOYLASH =====
         for w in (
             QLabel("Fan"), self.fan,
             QLabel("Blok"), self.block,
             self.import_btn, self.clear_btn,
             QLabel("Statistika"), self.stats,
-            self.table, self.edit_btn, self.delete_btn,
+            self.table,
+            self.edit_btn, self.delete_btn,
             self.gen_btn
         ):
             layout.addWidget(w)
 
+    # ===== MAJBURIY BLOKDA FANLARNI CHEKLASH =====
     def update_subjects(self, block):
         self.fan.clear()
         if block == "majburiy":
