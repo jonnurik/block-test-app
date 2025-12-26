@@ -15,11 +15,10 @@ from db import (
 from importer import import_xlsx
 from generator import generate_blocks
 from pdfgen import generate_pdf
-from edit_dialog import EditDialog
 
 
 # =====================
-# ISHGA TUSHIRISH
+# START
 # =====================
 init_db()
 app = QApplication(sys.argv)
@@ -27,15 +26,13 @@ ui = MainUI()
 
 
 # =====================
-# YANGILASH
+# REFRESH
 # =====================
 def refresh():
-    # Statistika
     ui.stats.clear()
     for s, b, c in get_stats():
         ui.stats.append(f"{s} [{b}]: {c} ta")
 
-    # Jadval
     qs = get_questions(ui.fan.currentText(), ui.block.currentText())
     ui.table.setRowCount(0)
 
@@ -46,7 +43,7 @@ def refresh():
 
 
 # =====================
-# EXCEL IMPORT
+# IMPORT EXCEL
 # =====================
 def do_import():
     try:
@@ -63,33 +60,25 @@ def do_import():
 
         QMessageBox.information(
             ui,
-            "Import bajarildi",
+            "Muvaffaqiyatli",
             f"{added} ta savol bazaga qo‘shildi"
         )
         refresh()
 
     except Exception as e:
-        QMessageBox.critical(ui, "Xato", str(e))
+        QMessageBox.critical(ui, "Xatolik", str(e))
 
 
 # =====================
-# BLOKNI TOZALASH
+# CLEAR BLOCK
 # =====================
 def do_clear():
-    reply = QMessageBox.question(
-        ui,
-        "Tasdiqlash",
-        f"{ui.fan.currentText()} [{ui.block.currentText()}] "
-        f"blokidagi barcha savollar o‘chirilsinmi?",
-        QMessageBox.Yes | QMessageBox.No
-    )
-    if reply == QMessageBox.Yes:
-        clear_block(ui.fan.currentText(), ui.block.currentText())
-        refresh()
+    clear_block(ui.fan.currentText(), ui.block.currentText())
+    refresh()
 
 
 # =====================
-# BITTA SAVOLNI O‘CHIRISH
+# DELETE ONE
 # =====================
 def do_delete():
     row = ui.table.currentRow()
@@ -103,59 +92,33 @@ def do_delete():
 
 
 # =====================
-# SAVOLNI TAHRIRLASH
-# =====================
-def do_edit():
-    row = ui.table.currentRow()
-    if row < 0:
-        QMessageBox.warning(ui, "Xato", "Savol tanlanmagan")
-        return
-
-    q = [ui.table.item(row, c).text() for c in range(8)]
-    dlg = EditDialog(q)
-    if dlg.exec_():
-        refresh()
-
-
-# =====================
-# PDF YARATISH
+# PDF
 # =====================
 def do_generate():
     path, _ = QFileDialog.getSaveFileName(
         ui,
         "PDF saqlash",
         "blok_test.pdf",
-        "PDF fayllar (*.pdf)"
+        "PDF (*.pdf)"
     )
     if not path:
         return
 
-    try:
-        # Asosiy fanlar (hozircha statik, keyin UI’dan tanlanadi)
-        blocks = generate_blocks("Biologiya", "Kimyo")
-        generate_pdf(path, blocks)
-        QMessageBox.information(ui, "Tayyor", "PDF yaratildi")
-
-    except Exception as e:
-        QMessageBox.critical(ui, "Xato", str(e))
+    blocks = generate_blocks("Biologiya", "Kimyo")
+    generate_pdf(path, blocks)
+    QMessageBox.information(ui, "Tayyor", "PDF yaratildi")
 
 
 # =====================
-# SIGNAL-LAR
+# SIGNALS
 # =====================
 ui.import_btn.clicked.connect(do_import)
 ui.clear_btn.clicked.connect(do_clear)
 ui.delete_btn.clicked.connect(do_delete)
-ui.edit_btn.clicked.connect(do_edit)
 ui.gen_btn.clicked.connect(do_generate)
-
 ui.fan.currentIndexChanged.connect(refresh)
 ui.block.currentIndexChanged.connect(refresh)
 
-
-# =====================
-# BOSHLASH
-# =====================
 refresh()
 ui.show()
 sys.exit(app.exec_())
