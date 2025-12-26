@@ -1,59 +1,38 @@
-from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout,
-    QLabel, QLineEdit, QTextEdit,
-    QPushButton, QComboBox
-)
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QPushButton
+from db import update_question
+
 
 class EditDialog(QDialog):
-    def __init__(self, data, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Savolni tahrirlash")
-        self.resize(520, 460)
+    def __init__(self, q):
+        super().__init__()
+        self.qid = q[0]
 
         layout = QVBoxLayout(self)
 
-        layout.addWidget(QLabel("Savol:"))
-        self.q_edit = QTextEdit(data["q"])
-        layout.addWidget(self.q_edit)
+        self.q = QLineEdit(q[1])
+        self.A = QLineEdit(q[2])
+        self.B = QLineEdit(q[3])
+        self.C = QLineEdit(q[4])
+        self.D = QLineEdit(q[5])
+        self.correct = QLineEdit(q[6])
+        self.diff = QLineEdit(q[7])
 
-        self.A = QLineEdit(data["A"])
-        self.B = QLineEdit(data["B"])
-        self.C = QLineEdit(data["C"])
-        self.D = QLineEdit(data["D"])
-
-        for lbl, w in [("A", self.A), ("B", self.B), ("C", self.C), ("D", self.D)]:
-            layout.addWidget(QLabel(lbl + " varianti:"))
+        for w in (self.q, self.A, self.B, self.C, self.D, self.correct, self.diff):
             layout.addWidget(w)
 
-        layout.addWidget(QLabel("To‘g‘ri javob:"))
-        self.correct = QComboBox()
-        self.correct.addItems(["A", "B", "C", "D"])
-        self.correct.setCurrentText(data["correct"])
-        layout.addWidget(self.correct)
+        btn = QPushButton("Saqlash")
+        btn.clicked.connect(self.save)
+        layout.addWidget(btn)
 
-        layout.addWidget(QLabel("Qiyinlik darajasi:"))
-        self.diff = QComboBox()
-        self.diff.addItems(["oson", "orta", "qiyin"])
-        self.diff.setCurrentText(data["difficulty"])
-        layout.addWidget(self.diff)
-
-        btns = QHBoxLayout()
-        self.ok = QPushButton("Saqlash")
-        self.cancel = QPushButton("Bekor qilish")
-        btns.addWidget(self.ok)
-        btns.addWidget(self.cancel)
-        layout.addLayout(btns)
-
-        self.ok.clicked.connect(self.accept)
-        self.cancel.clicked.connect(self.reject)
-
-    def result_data(self):
-        return {
-            "q": self.q_edit.toPlainText().strip(),
-            "A": self.A.text(),
-            "B": self.B.text(),
-            "C": self.C.text(),
-            "D": self.D.text(),
-            "correct": self.correct.currentText(),
-            "difficulty": self.diff.currentText()
-        }
+    def save(self):
+        update_question(
+            self.qid,
+            self.q.text(),
+            self.A.text(),
+            self.B.text(),
+            self.C.text(),
+            self.D.text(),
+            self.correct.text(),
+            self.diff.text()
+        )
+        self.accept()
