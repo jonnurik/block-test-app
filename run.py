@@ -1,36 +1,23 @@
 import sqlite3
 import os
 
-# =====================
-# DOIMIY BAZA JOYI
-# =====================
-BASE_DIR = os.path.join(
-    os.path.expanduser("~"),
-    "Documents",
-    "BlockTestGenerator"
-)
-os.makedirs(BASE_DIR, exist_ok=True)
-
-DB_PATH = os.path.join(BASE_DIR, "questions.db")
+DB_DIR = os.path.join(os.path.expanduser("~"), "BlockTestDB")
+os.makedirs(DB_DIR, exist_ok=True)
+DB_PATH = os.path.join(DB_DIR, "tests.db")
 
 
-# =====================
-# BAZAGA ULANISH
-# =====================
-
-def get_conn():
+def connect():
     return sqlite3.connect(DB_PATH)
 
 
 def init_db():
-    conn = get_conn()
+    conn = connect()
     cur = conn.cursor()
-
     cur.execute("""
     CREATE TABLE IF NOT EXISTS questions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         subject TEXT,
-        block_type TEXT,
+        block TEXT,
         difficulty TEXT,
         question TEXT,
         A TEXT,
@@ -40,122 +27,70 @@ def init_db():
         correct TEXT
     )
     """)
-
     conn.commit()
     conn.close()
 
 
-# =====================
-# MAʼLUMOT QO‘SHISH
-# =====================
-
-def insert_question(subject, block_type, question, A, B, C, D, correct, difficulty):
-    conn = get_conn()
+def add_question(subject, block, difficulty, q, A, B, C, D, correct):
+    conn = connect()
     cur = conn.cursor()
-
     cur.execute("""
-    INSERT INTO questions
-    (subject, block_type, difficulty, question, A, B, C, D, correct)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (subject, block_type, difficulty, question, A, B, C, D, correct))
-
+    INSERT INTO questions VALUES (NULL,?,?,?,?,?,?,?,?,?)
+    """, (subject, block, difficulty, q, A, B, C, D, correct))
     conn.commit()
     conn.close()
 
 
-# =====================
-# STATISTIKA (MUHIM!)
-# =====================
-
-def get_subject_stats():
-    """
-    Fan + blok bo‘yicha savollar soni
-    """
-    conn = get_conn()
+def get_stats():
+    conn = connect()
     cur = conn.cursor()
-
     cur.execute("""
-    SELECT subject, block_type, COUNT(*)
-    FROM questions
-    GROUP BY subject, block_type
-    ORDER BY subject
+    SELECT subject, block, COUNT(*) FROM questions
+    GROUP BY subject, block
     """)
-
-    rows = cur.fetchall()
+    r = cur.fetchall()
     conn.close()
-    return rows
+    return r
 
 
-# =====================
-# SAVOLLARNI OLISH
-# =====================
-
-def get_questions(subject, block_type):
-    conn = get_conn()
+def get_questions(subject, block):
+    conn = connect()
     cur = conn.cursor()
-
     cur.execute("""
     SELECT id, question, A, B, C, D, correct, difficulty
     FROM questions
-    WHERE subject=? AND block_type=?
-    ORDER BY id DESC
-    """, (subject, block_type))
-
-    rows = cur.fetchall()
+    WHERE subject=? AND block=?
+    """, (subject, block))
+    r = cur.fetchall()
     conn.close()
-    return rows
+    return r
 
-
-# =====================
-# TEST GENERATSIYA UCHUN
-# =====================
-
-def select_questions(subject, block_type, limit):
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("""
-    SELECT question, A, B, C, D
-    FROM questions
-    WHERE subject=? AND block_type=?
-    ORDER BY RANDOM()
-    LIMIT ?
-    """, (subject, block_type, limit))
-
-    rows = cur.fetchall()
-    conn.close()
-
-    result = []
-    for r in rows:
-        result.append({
-            "q": r[0],
-            "A": r[1],
-            "B": r[2],
-            "C": r[3],
-            "D": r[4]
-        })
-
-    return result
-
-
-# =====================
-# O‘CHIRISH
-# =====================
 
 def delete_question(qid):
-    conn = get_conn()
+    conn = connect()
     cur = conn.cursor()
     cur.execute("DELETE FROM questions WHERE id=?", (qid,))
     conn.commit()
     conn.close()
 
 
-def clear_block(subject, block_type):
-    conn = get_conn()
+def clear_block(subject, block):
+    conn = connect()
     cur = conn.cursor()
-    cur.execute(
-        "DELETE FROM questions WHERE subject=? AND block_type=?",
-        (subject, block_type)
-    )
+    cur.execute("DELETE FROM questions WHERE subject=? AND block=?", (subject, block))
     conn.commit()
     conn.close()
+
+
+def random_questions(subject, block, limit):
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute("""
+    SELECT question, A, B, C, D FROM questions
+    WHERE subject=? AND block=?
+    ORDER BY RANDOM()
+    LIMIT ?
+    """, (subject, block, limit))
+    r = cur.fetchall()
+    conn.close()
+    return r
