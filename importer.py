@@ -1,49 +1,56 @@
-import json
+from openpyxl import load_workbook
 from db import add_question
 
 
-def import_json(path, subject, block):
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+def import_xlsx(path):
+    wb = load_workbook(path)
+    ws = wb.active
 
-    if not isinstance(data, list):
-        raise Exception("JSON massiv (list) bo‘lishi kerak")
+    rows = list(ws.iter_rows(values_only=True))
+
+    if len(rows) < 2:
+        raise Exception("Excel faylda maʼlumot yo‘q")
+
+    header = rows[0]
+    required = [
+        "subject", "block", "difficulty",
+        "question", "A", "B", "C", "D", "correct"
+    ]
+
+    for r in required:
+        if r not in header:
+            raise Exception(f"Ustun yetishmayapti: {r}")
+
+    idx = {name: header.index(name) for name in required}
 
     count = 0
 
-    for i, q in enumerate(data, start=1):
+    for i, row in enumerate(rows[1:], start=2):
         try:
-            # 1️⃣ Variantlar 2 xil formatda bo‘lishi mumkin
-            if "A" in q:
-                A = q["A"]
-                B = q["B"]
-                C = q["C"]
-                D = q["D"]
-                correct = q["correct"]
-            elif "answers" in q and isinstance(q["answers"], list):
-                answers = q["answers"]
-                if len(answers) < 4:
-                    raise Exception("answers kamida 4 ta bo‘lishi kerak")
+            subject = row[idx["subject"]]
+            block = row[idx["block"]]
+            difficulty = row[idx["difficulty"]]
+            question = row[idx["question"]]
+            A = row[idx["A"]]
+            B = row[idx["B"]]
+            C = row[idx["C"]]
+            D = row[idx["D"]]
+            correct = row[idx["correct"]]
 
-                A, B, C, D = answers[:4]
-
-                # correct index → harf
-                idx = q.get("correct", 0)
-                correct = ["A", "B", "C", "D"][idx]
-            else:
-                raise Exception("Variantlar topilmadi (A/B/C/D yoki answers yo‘q)")
+            if correct not in ("A", "B", "C", "D"):
+                raise Exception("correct faqat A/B/C/D bo‘lishi kerak")
 
             add_question(
                 subject,
                 block,
-                q.get("difficulty", "o‘rta"),
-                q["question"],
+                difficulty,
+                question,
                 A, B, C, D,
                 correct
             )
             count += 1
 
         except Exception as e:
-            raise Exception(f"{i}-savolda xato: {e}")
+            raise Exception(f"{i}-qatorda xato: {e}")
 
     return count
