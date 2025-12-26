@@ -1,56 +1,43 @@
-from openpyxl import load_workbook
-from db import add_question
+import pandas as pd
+from db import insert_question
 
 
 def import_xlsx(path):
-    wb = load_workbook(path)
-    ws = wb.active
+    """
+    Excel fayldan savollarni o‘qib bazaga yozadi
+    Kutilgan ustunlar:
+    subject | block | question | A | B | C | D | correct | difficulty
+    """
 
-    rows = list(ws.iter_rows(values_only=True))
+    try:
+        df = pd.read_excel(path, engine="openpyxl")
+    except ImportError:
+        raise Exception(
+            "openpyxl topilmadi. Iltimos, dasturni qayta build qiling."
+        )
 
-    if len(rows) < 2:
-        raise Exception("Excel faylda maʼlumot yo‘q")
-
-    header = rows[0]
-    required = [
-        "subject", "block", "difficulty",
-        "question", "A", "B", "C", "D", "correct"
+    required_cols = [
+        "subject", "block", "question",
+        "A", "B", "C", "D", "correct", "difficulty"
     ]
 
-    for r in required:
-        if r not in header:
-            raise Exception(f"Ustun yetishmayapti: {r}")
-
-    idx = {name: header.index(name) for name in required}
+    for col in required_cols:
+        if col not in df.columns:
+            raise Exception(f"Excel ustuni yetishmayapti: {col}")
 
     count = 0
-
-    for i, row in enumerate(rows[1:], start=2):
-        try:
-            subject = row[idx["subject"]]
-            block = row[idx["block"]]
-            difficulty = row[idx["difficulty"]]
-            question = row[idx["question"]]
-            A = row[idx["A"]]
-            B = row[idx["B"]]
-            C = row[idx["C"]]
-            D = row[idx["D"]]
-            correct = row[idx["correct"]]
-
-            if correct not in ("A", "B", "C", "D"):
-                raise Exception("correct faqat A/B/C/D bo‘lishi kerak")
-
-            add_question(
-                subject,
-                block,
-                difficulty,
-                question,
-                A, B, C, D,
-                correct
-            )
-            count += 1
-
-        except Exception as e:
-            raise Exception(f"{i}-qatorda xato: {e}")
+    for _, row in df.iterrows():
+        insert_question(
+            subject=row["subject"],
+            block=row["block"],
+            question=row["question"],
+            a=row["A"],
+            b=row["B"],
+            c=row["C"],
+            d=row["D"],
+            correct=row["correct"],
+            difficulty=row["difficulty"]
+        )
+        count += 1
 
     return count
