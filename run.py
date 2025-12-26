@@ -1,96 +1,50 @@
-import sqlite3
-import os
-
-DB_DIR = os.path.join(os.path.expanduser("~"), "BlockTestDB")
-os.makedirs(DB_DIR, exist_ok=True)
-DB_PATH = os.path.join(DB_DIR, "tests.db")
-
-
-def connect():
-    return sqlite3.connect(DB_PATH)
+import sys
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox
+from ui import MainUI
+from db import init_db, get_stats, get_questions, clear_block
+from importer import import_json
 
 
-def init_db():
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS questions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        subject TEXT,
-        block TEXT,
-        difficulty TEXT,
-        question TEXT,
-        A TEXT,
-        B TEXT,
-        C TEXT,
-        D TEXT,
-        correct TEXT
-    )
-    """)
-    conn.commit()
-    conn.close()
+init_db()
+app = QApplication(sys.argv)
+ui = MainUI()
 
 
-def add_question(subject, block, difficulty, q, A, B, C, D, correct):
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("""
-    INSERT INTO questions VALUES (NULL,?,?,?,?,?,?,?,?,?)
-    """, (subject, block, difficulty, q, A, B, C, D, correct))
-    conn.commit()
-    conn.close()
+def refresh():
+    ui.stats.clear()
+    for s, b, c in get_stats():
+        ui.stats.append(f"{s} [{b}]: {c}")
+
+    qs = get_questions(ui.fan.currentText(), ui.block.currentText())
+    ui.table.setRowCount(0)
+    for r, q in enumerate(qs):
+        ui.table.insertRow(r)
+        for c, v in enumerate(q):
+            ui.table.setItem(r, c, QTableWidgetItem(str(v)))
 
 
-def get_stats():
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("""
-    SELECT subject, block, COUNT(*) FROM questions
-    GROUP BY subject, block
-    """)
-    r = cur.fetchall()
-    conn.close()
-    return r
+def do_import():
+    try:
+        path, _ = QFileDialog.getOpenFileName(ui, "JSON", "", "*.json")
+        if not path:
+            return
+        added = import_json(path, ui.fan.currentText(), ui.block.currentText())
+        QMessageBox.information(ui, "OK", f"{added} ta savol qo‘shildi")
+        refresh()
+    except Exception as e:
+        QMessageBox.critical(ui, "Xato", str(e))
 
 
-def get_questions(subject, block):
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("""
-    SELECT id, question, A, B, C, D, correct, difficulty
-    FROM questions
-    WHERE subject=? AND block=?
-    """, (subject, block))
-    r = cur.fetchall()
-    conn.close()
-    return r
+def do_clear():
+    clear_block(ui.fan.currentText(), ui.block.currentText())
+    refresh()
 
 
-def delete_question(qid):
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM questions WHERE id=?", (qid,))
-    conn.commit()
-    conn.close()
+ui.import_btn.clicked.connect(do_import)
+ui.clear_btn.clicked.connect(do_clear)
+ui.fan.currentIndexChanged.connect(refresh)
+ui.block.currentIndexChanged.connect(refresh)
 
-
-def clear_block(subject, block):
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM questions WHERE subject=? AND block=?", (subject, block))
-    conn.commit()
-    conn.close()
-
-
-def random_questions(subject, block, limit):
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("""
-    SELECT question, A, B, C, D FROM questions
-    WHERE subject=? AND block=?
-    ORDER BY RANDOM()
-    LIMIT ?
-    """, (subject, block, limit))
-    r = cur.fetchall()
-    conn.close()
-    return r
+refresh()
+ui.show()
+sys.exit(app.exec_())
