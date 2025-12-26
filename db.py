@@ -54,6 +54,7 @@ def get_questions(subject, block):
     SELECT id, question, a, b, c, d, correct, difficulty
     FROM questions
     WHERE subject=? AND block=?
+    ORDER BY id
     """, (subject, block))
 
     rows = cur.fetchall()
@@ -80,7 +81,16 @@ def clear_block(subject, block):
     conn.close()
 
 
-def get_subject_stats():
+# ✅ MANA SHU FUNKSIYA SIZDA YO‘Q EDI
+def get_stats():
+    """
+    Natija:
+    [
+        ('Matematika', 'asosiy', 63),
+        ('Ona tili', 'majburiy', 30),
+        ...
+    ]
+    """
     conn = get_conn()
     cur = conn.cursor()
 
@@ -88,6 +98,7 @@ def get_subject_stats():
     SELECT subject, block, COUNT(*)
     FROM questions
     GROUP BY subject, block
+    ORDER BY subject
     """)
 
     rows = cur.fetchall()
