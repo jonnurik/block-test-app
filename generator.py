@@ -1,11 +1,8 @@
-import random
-from db import get_questions
+from db import random_questions
 
 
-def generate_block(subject, block_type, limit):
-    rows = get_questions(subject, block_type)
-    if len(rows) < limit:
-        return []
-
-    random.shuffle(rows)
-    return rows[:limit]
+def generate(subject, block, count):
+    qs = random_questions(subject, block, count)
+    if len(qs) < count:
+        raise Exception(f"{subject} ({block}) fanidan savol yetarli emas")
+    return qs
