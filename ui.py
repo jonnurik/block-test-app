@@ -8,14 +8,15 @@ class MainUI(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Blok test generatori")
-        self.resize(900, 600)
+        self.resize(1000, 650)
 
         layout = QVBoxLayout(self)
 
         self.fan = QComboBox()
         self.fan.addItems([
             "Ona tili", "Matematika", "Tarix",
-            "Biologiya", "Kimyo", "Fizika", "Ingliz tili"
+            "Biologiya", "Kimyo", "Fizika",
+            "Ingliz tili", "Geografiya"
         ])
 
         self.block = QComboBox()
@@ -23,6 +24,8 @@ class MainUI(QWidget):
 
         self.import_btn = QPushButton("JSON import")
         self.clear_btn = QPushButton("Blokni tozalash")
+        self.edit_btn = QPushButton("Tahrirlash")
+        self.delete_btn = QPushButton("Bitta savolni o‘chirish")
 
         self.stats = QTextEdit()
         self.stats.setReadOnly(True)
@@ -32,12 +35,14 @@ class MainUI(QWidget):
             ["ID", "Savol", "A", "B", "C", "D", "To‘g‘ri", "Qiyinlik"]
         )
 
-        layout.addWidget(QLabel("Fan"))
-        layout.addWidget(self.fan)
-        layout.addWidget(QLabel("Blok"))
-        layout.addWidget(self.block)
-        layout.addWidget(self.import_btn)
-        layout.addWidget(self.clear_btn)
-        layout.addWidget(QLabel("Statistika"))
-        layout.addWidget(self.stats)
-        layout.addWidget(self.table)
+        self.gen_btn = QPushButton("PDF yaratish")
+
+        for w in (
+            QLabel("Fan"), self.fan,
+            QLabel("Blok"), self.block,
+            self.import_btn, self.clear_btn,
+            QLabel("Statistika"), self.stats,
+            self.table, self.edit_btn, self.delete_btn,
+            self.gen_btn
+        ):
+            layout.addWidget(w)
