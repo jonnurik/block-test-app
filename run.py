@@ -105,7 +105,11 @@ def do_generate():
         return
 
     blocks = generate_blocks("Biologiya", "Kimyo")
-    generate_pdf(path, blocks)
+    generate_pdf(
+    save_path,
+    "assets/logo.png",
+    blocks
+    )
     QMessageBox.information(ui, "Tayyor", "PDF yaratildi")
 
 
