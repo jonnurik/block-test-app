@@ -126,3 +126,10 @@ ui.block.currentIndexChanged.connect(refresh)
 refresh()
 ui.show()
 sys.exit(app.exec_())
+
+generate_block("Ona tili", 10, "majburiy")
+generate_block("Matematika", 10, "majburiy")
+generate_block("Tarix", 10, "majburiy")
+generate_block(asosiy1, 30, "asosiy")
+generate_block(asosiy2, 30, "asosiy")
+
