@@ -104,3 +104,27 @@ def get_stats():
     rows = cur.fetchall()
     conn.close()
     return rows
+
+import random
+
+def random_questions(subject, block, limit):
+    """
+    Berilgan fan + blok bo‘yicha tasodifiy savollar qaytaradi
+    """
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+    SELECT id, question, a, b, c, d, correct, difficulty
+    FROM questions
+    WHERE subject=? AND block=?
+    """, (subject, block))
+
+    rows = cur.fetchall()
+    conn.close()
+
+    if len(rows) < limit:
+        return []
+
+    return random.sample(rows, limit)
+
