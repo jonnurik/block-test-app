@@ -3,15 +3,20 @@ import pandas as pd
 from db import insert_question
 
 
-def import_excel(path, subject, block):
+def import_xlsx(path, subject, block):
+    """
+    Excel ustunlari SHART:
+    Savol | A | B | C | D | Togri | Qiyinlik
+    """
+
     df = pd.read_excel(path)
 
     required_cols = ["Savol", "A", "B", "C", "D", "Togri", "Qiyinlik"]
     for col in required_cols:
         if col not in df.columns:
-            raise ValueError(f"Ustun topilmadi: {col}")
+            raise ValueError(f"Excel faylda '{col}' ustuni topilmadi")
 
-    count = 0
+    added = 0
 
     for _, row in df.iterrows():
         insert_question(
@@ -25,6 +30,6 @@ def import_excel(path, subject, block):
             correct=str(row["Togri"]),
             difficulty=str(row["Qiyinlik"])
         )
-        count += 1
+        added += 1
 
-    return count
+    return added
